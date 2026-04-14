@@ -5,7 +5,7 @@
 [![Flask](https://img.shields.io/badge/Flask-2.3-green.svg)](https://flask.palletsprojects.com/)
 [![OpenCV](https://img.shields.io/badge/OpenCV-4.8-red.svg)](https://opencv.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/YOUR_USERNAME/AI-Medical-Image-Analysis)](https://github.com/YOUR_USERNAME/AI-Medical-Image-Analysis/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/Shikha-7038/AI-Medical-Image-Analysis)](https://github.com/Shikha-7038/AI-Medical-Image-Analysis/stargazers)
 
 > **An AI-powered system that classifies Brain MRI images to detect tumors with 94% accuracy**
 
