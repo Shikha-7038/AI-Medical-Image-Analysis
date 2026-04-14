@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Brain MRI Analysis System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: none;
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+            font-weight: bold;
+        }
+        
+        .upload-area {
+            border: 3px dashed #dee2e6;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background-color: #f8f9fa;
+        }
+        
+        .prediction-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .confidence-bar {
+            height: 30px;
+            border-radius: 15px;
+            transition: width 1s ease;
+        }
+        
+        .btn-predict {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            color: white;
+        }
+        
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .result-card {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .badge-disease {
+            font-size: 14px;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h2>🧠 AI-Powered Brain MRI Analysis System</h2>
+                        <p class="mb-0">Advanced Deep Learning for Brain Tumor Detection</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Upload Section -->
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #667eea;"></i>
+                            <h4 class="mt-3">Click or Drag & Drop to Upload MRI Image</h4>
+                            <p class="text-muted">Supports JPG, PNG, JPEG (Max 16MB)</p>
+                            <button class="btn btn-outline-primary mt-2" onclick="document.getElementById('fileInput').click()">
+                                Choose File
+                            </button>
+                        </div>
+                        
+                        <!-- Preview Section -->
+                        <div id="previewSection" style="display: none;" class="mt-4">
+                            <h5>Image Preview:</h5>
+                            <img id="imagePreview" class="img-fluid rounded" style="max-height: 300px; width: auto;">
+                        </div>
+                        
+                        <!-- Predict Button -->
+                        <div class="text-center mt-4">
+                            <button id="predictBtn" class="btn-predict" disabled>
+                                🔬 Analyze MRI Image
+                            </button>
+                        </div>
+                        
+                        <!-- Loading Indicator -->
+                        <div id="loadingIndicator" style="display: none;" class="text-center mt-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Analyzing image with AI model...</p>
+                        </div>
+                        
+                        <!-- Results Section -->
+                        <div id="resultsSection" style="display: none;" class="result-card mt-4">
+                            <div class="prediction-card">
+                                <h4 class="text-center mb-4">📊 Analysis Results</h4>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="text-center">
+                                            <img id="resultImage" class="img-fluid rounded" style="max-height: 200px;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Diagnosis:</h5>
+                                        <div id="predictionResult" class="mb-3"></div>
+                                        
+                                        <h5>Confidence Level:</h5>
+                                        <div class="progress mb-3" style="height: 30px;">
+                                            <div id="confidenceBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                                 role="progressbar" style="width: 0%;">
+                                                <span id="confidenceText" style="font-weight: bold;">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="mt-4">Class Probabilities:</h5>
+                                <canvas id="probabilityChart" width="400" height="200"></canvas>
+                                
+                                <div class="alert alert-info mt-4" role="alert">
+                                    <strong>⚠️ Medical Disclaimer:</strong> This is an AI-assisted diagnostic tool. 
+                                    All predictions should be verified by a qualified medical professional.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Powered by TensorFlow Deep Learning | Trained on Brain MRI Dataset</p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedFile = null;
+        let probabilityChart = null;
+        
+        // Upload area click handler
+        document.getElementById('uploadArea').addEventListener('click', function() {
+            document.getElementById('fileInput').click();
+        });
+        
+        // File input change handler
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('imagePreview').src = event.target.result;
+                    document.getElementById('previewSection').style.display = 'block';
+                    document.getElementById('predictBtn').disabled = false;
+                    document.getElementById('resultsSection').style.display = 'none';
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        });
+        
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#667eea';
+            uploadArea.style.backgroundColor = '#f8f9fa';
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#dee2e6';
+            uploadArea.style.backgroundColor = 'transparent';
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#dee2e6';
+            uploadArea.style.backgroundColor = 'transparent';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                selectedFile = files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('imagePreview').src = event.target.result;
+                    document.getElementById('previewSection').style.display = 'block';
+                    document.getElementById('predictBtn').disabled = false;
+                    document.getElementById('resultsSection').style.display = 'none';
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        });
+        
+        // Predict button handler
+        document.getElementById('predictBtn').addEventListener('click', async function() {
+            if (!selectedFile) return;
+            
+            // Show loading
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('predictBtn').disabled = true;
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    alert('Error: ' + result.error);
+                    return;
+                }
+                
+                // Display results
+                displayResults(result);
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('predictBtn').disabled = false;
+            }
+        });
+        
+        function displayResults(result) {
+            // Set result image
+            document.getElementById('resultImage').src = result.image_path;
+            
+            // Set prediction result with color
+            const predictionDiv = document.getElementById('predictionResult');
+            predictionDiv.innerHTML = `<span class="badge-disease" style="background: ${result.color}; color: white; font-size: 18px; padding: 10px 20px;">
+                ${result.predicted_class}
+            </span>`;
+            
+            // Set confidence bar
+            const confidencePercent = (result.confidence * 100).toFixed(1);
+            document.getElementById('confidenceBar').style.width = confidencePercent + '%';
+            document.getElementById('confidenceText').innerText = confidencePercent + '%';
+            
+            // Set bar color
+            if (result.confidence > 0.8) {
+                document.getElementById('confidenceBar').style.backgroundColor = '#28a745';
+            } else if (result.confidence > 0.6) {
+                document.getElementById('confidenceBar').style.backgroundColor = '#ffc107';
+            } else {
+                document.getElementById('confidenceBar').style.backgroundColor = '#dc3545';
+            }
+            
+            // Create probability chart
+            const classes = Object.keys(result.probabilities);
+            const probabilities = Object.values(result.probabilities);
+            
+            if (probabilityChart) {
+                probabilityChart.destroy();
+            }
+            
+            const ctx = document.getElementById('probabilityChart').getContext('2d');
+            probabilityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: classes,
+                    datasets: [{
+                        label: 'Probability',
+                        data: probabilities,
+                        backgroundColor: [
+                            '#dc3545', '#fd7e14', '#28a745', '#6f42c1'
+                        ],
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return (context.raw * 100).toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value * 100) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Show results section
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>

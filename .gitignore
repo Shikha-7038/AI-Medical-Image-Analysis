@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+
+# Dataset (IMPORTANT - prevents uploading large files)
+data/raw/
+data/processed/
+data/sample/
+
+# Large model files
+*.h5
+*.hdf5
+*.pb
+*.pkl
+*.joblib
+
+# Outputs
+outputs/
+models/
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+!notebooks/*.ipynb
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Secrets
+*.json
+*.key
+*.crt
